@@ -11,10 +11,11 @@ const fallbackServices = [
     description: "AI Workspace"
   },
   {
-    name: "p5-suggestion-box",
-    html_url: "https://github.com/pirs5/p5-suggestion-box",
-    homepage: "",
-    has_pages: false,
+    name: "p5-suggestion-board-frontend",
+    display_name: "P5 SUGGESTION BOX",
+    html_url: "https://github.com/pirs5/p5-suggestion-board-frontend",
+    homepage: "https://pirs5.github.io/p5-suggestion-board-frontend/",
+    has_pages: true,
     description: "Suggestion box service."
   },
   {
@@ -68,16 +69,33 @@ const pinnedServices = [
     description: "AI Workspace"
   },
   {
-    name: "p5-suggestion-box",
-    html_url: "https://github.com/pirs5/p5-suggestion-box",
-    homepage: "",
-    has_pages: false,
+    name: "p5-suggestion-board-frontend",
+    display_name: "P5 SUGGESTION BOX",
+    html_url: "https://github.com/pirs5/p5-suggestion-board-frontend",
+    homepage: "https://pirs5.github.io/p5-suggestion-board-frontend/",
+    has_pages: true,
     description: "Suggestion box service."
   }
 ];
 
 function prettifyName(name) {
   return name.replace(/[-_]/g, " ").replace(/\b\w/g, char => char.toUpperCase());
+}
+
+function enrichService(repo) {
+  if (!repo || !repo.name) {
+    return repo;
+  }
+
+  if (repo.name.toLowerCase() === "p5-suggestion-board-frontend") {
+    return {
+      ...repo,
+      display_name: "P5 SUGGESTION BOX",
+      description: "Suggestion box service."
+    };
+  }
+
+  return repo;
 }
 
 function isServiceRepo(repo) {
@@ -106,8 +124,9 @@ function getRepoLink(repo) {
 function mergeByRepoName(primary, secondary) {
   const map = new Map();
   [...secondary, ...primary].forEach((repo) => {
-    if (repo && repo.name) {
-      map.set(repo.name.toLowerCase(), repo);
+    const enrichedRepo = enrichService(repo);
+    if (enrichedRepo && enrichedRepo.name) {
+      map.set(enrichedRepo.name.toLowerCase(), enrichedRepo);
     }
   });
   return [...map.values()];
