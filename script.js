@@ -3,6 +3,21 @@ const REPO_API = `https://api.github.com/users/${USERNAME}/repos?per_page=100&so
 
 const fallbackServices = [
   {
+    name: "phygital.plus",
+    display_name: "phygital.plus",
+    html_url: "https://app.phygital.plus/sign-in",
+    homepage: "https://app.phygital.plus/sign-in",
+    has_pages: true,
+    description: "AI Workspace"
+  },
+  {
+    name: "p5-suggestion-box",
+    html_url: "https://github.com/pirs5/p5-suggestion-box",
+    homepage: "",
+    has_pages: false,
+    description: "Suggestion box service."
+  },
+  {
     name: "p5-digital-business-card",
     html_url: "https://github.com/pirs5/p5-digital-business-card",
     homepage: "https://pirs5.github.io/p5-digital-business-card/",
@@ -43,6 +58,24 @@ const grid = document.getElementById("services-grid");
 const count = document.getElementById("service-count");
 const cardTemplate = document.getElementById("card-template");
 
+const pinnedServices = [
+  {
+    name: "phygital.plus",
+    display_name: "phygital.plus",
+    html_url: "https://app.phygital.plus/sign-in",
+    homepage: "https://app.phygital.plus/sign-in",
+    has_pages: true,
+    description: "AI Workspace"
+  },
+  {
+    name: "p5-suggestion-box",
+    html_url: "https://github.com/pirs5/p5-suggestion-box",
+    homepage: "",
+    has_pages: false,
+    description: "Suggestion box service."
+  }
+];
+
 function prettifyName(name) {
   return name.replace(/[-_]/g, " ").replace(/\b\w/g, char => char.toUpperCase());
 }
@@ -70,6 +103,16 @@ function getRepoLink(repo) {
   };
 }
 
+function mergeByRepoName(primary, secondary) {
+  const map = new Map();
+  [...secondary, ...primary].forEach((repo) => {
+    if (repo && repo.name) {
+      map.set(repo.name.toLowerCase(), repo);
+    }
+  });
+  return [...map.values()];
+}
+
 function renderServices(repos) {
   grid.innerHTML = "";
 
@@ -83,7 +126,8 @@ function renderServices(repos) {
   repos.forEach((repo, index) => {
     const node = cardTemplate.content.cloneNode(true);
     const card = node.querySelector(".service-card");
-    node.querySelector(".service-name").textContent = prettifyName(repo.name);
+    node.querySelector(".service-name").textContent =
+      repo.display_name || prettifyName(repo.name);
     node.querySelector(".service-description").textContent =
       repo.description || "Service repository on GitHub.";
     const link = node.querySelector(".service-link");
@@ -103,12 +147,14 @@ async function loadServices() {
     const response = await fetch(REPO_API);
     if (!response.ok) throw new Error(`GitHub API error: ${response.status}`);
     const repos = await response.json();
-    const services = repos
-      .filter(isServiceRepo)
+    const services = mergeByRepoName(
+      repos.filter(isServiceRepo),
+      pinnedServices
+    )
       .sort((a, b) => a.name.localeCompare(b.name));
     renderServices(services);
   } catch (error) {
-    renderServices(fallbackServices);
+    renderServices(mergeByRepoName(fallbackServices, pinnedServices));
   }
 }
 
